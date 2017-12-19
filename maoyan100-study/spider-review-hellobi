@@ -1,0 +1,65 @@
+####练习requests+正则表达式，根据时光网、猫眼电影榜单
+####hellobi课程下载
+
+import requests
+import re
+import json
+from requests.exceptions import RequestException
+from multiprocessing import Pool
+
+
+
+def get_one_page(url):
+    try:
+        response=requests.get(url)
+        if response.status_code==200:
+            return response.text
+        return None
+    except RequestException:
+        return None
+
+
+def parse_one_page(html):
+    # patten=re.compile('course-list.*?href="(.*?)">.*?src="(.*?)">.*?alt="(.*?)">.*?fa fa-clock-o">(.*?)</span>.*?pull-right people">(.*?)</span>.*?text-success">(.*?)</spam>',re.S)
+    # patten=re.compile('course-list.*?href="(.*?)">.*?src="(.*?)">.*?alt="(.*?)">.*?fa-clock-o">(.*?)</span>',re.S)
+    # patten=re.compile('course-list.*?href="(.*?)">.*?src="(.*?)".*?alt="(.*?)">.*?fa-clock-o">(.*?)课时</span>',re.S)
+    compile_str='course-list.*?href="(.*?)">.*?src="(.*?)".*?alt="(.*?)">.*?fa-clock-o">(.*?)</span>.*?teacher"></span>'
+    # +'.*?people">(.*?)</span>.*?text-success">(.*?)</span>',re.S)
+    patten=re.compile(compile_str,re.S)
+
+    items=re.findall(patten,html)
+    # print(items)
+    for item in items:
+        yield {
+            'url':item[0],
+            'pic':item[1],
+            'title':item[2],
+            'time':re.sub('</i> ','',item[3])
+            # 'num':re.sub('人学习','',item[4]),
+        }
+
+def write_to_file(content):
+    with open('result2.txt','a',encoding='utf-8') as f:
+        f.write(json.dumps(content,ensure_ascii=False)+'\n')
+        f.close()
+
+def main(page):
+    url='https://edu.hellobi.com/course/explore?page='+str(page)
+    html=get_one_page(url)
+    items=parse_one_page(html)
+    # print(items)
+    for item in items:
+        print(item)
+        write_to_file(item)
+
+
+
+#
+# if __name__ == '__main__':
+#     for i in range(14):
+#         main(i)
+
+
+if __name__ == '__main__':
+        pool=Pool()
+        pool.map(main,[i for i in range(2)])

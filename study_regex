@@ -1,0 +1,15 @@
+import re
+import requests
+content=requests.get('https://book.douban.com/latest?icn=index-latestbook-all').text
+pattern=re.compile('<li>.*?cover.*?href="(.*?)".*?src="(.*?)".*?<a.*?>(.*?)</a>.*?color-gray">(.*?)</p>',re.S)
+results=re.findall(pattern,content)
+for result in results:
+    url,pic,name,author=result
+    name=re.sub('\s','',name)
+    author = re.sub('\s', '', author)
+    print(url,pic,name,author)
+
+
+
+
+
